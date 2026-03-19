@@ -16,9 +16,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Inject Anthropic API Key
+      - name: Inject Encoded API Key
         run: |
-          sed -i "s/ANTHROPIC_KEY_PLACEHOLDER/${{ secrets.ANTHROPIC_API_KEY }}/g" index.html
+          ENCODED=$(echo -n "${{ secrets.ANTHROPIC_API_KEY }}" | base64)
+          sed -i "s/ANTHROPIC_KEY_PLACEHOLDER/${ENCODED}/g" index.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
