@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Free Construction Cost Estimator | Evans Engineering & Construction</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0c0f; --surface: #111318; --surface2: #181c23; --border: #222730;
+    --accent: #f5a623; --accent2: #e85d26; --text: #e8eaf0;
+    --muted: #6b7280; --green: #22c55e; --red: #ef4444; --blue: #3b82f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(245,166,35,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(245,166,35,0.03) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; z-index: 0; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  /* HEADER */
+  header { padding: 28px 0 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; color: var(--accent); }
+  .logo span { color: var(--text); }
+  .tagline { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; letter-spacing: 1px; text-transform: uppercase; }
+  .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .token-bar { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 100px; padding: 6px 16px; }
+  .tk-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .tk-count { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--accent); line-height: 1; }
+  .tk-unit { font-size: 11px; color: var(--muted); }
+  .buy-more-btn { background: rgba(245,166,35,0.12); border: 1px solid var(--accent); color: var(--accent); padding: 6px 16px; border-radius: 100px; font-size: 12px; cursor: pointer; font-family: 'DM Mono', monospace; letter-spacing: 0.5px; transition: all 0.15s; white-space: nowrap; }
+  .buy-more-btn:hover { background: rgba(245,166,35,0.22); }
+
+  /* HERO */
+  .hero { padding: 40px 0 32px; text-align: center; }
+  .hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(44px, 8vw, 84px); line-height: 0.95; letter-spacing: 3px; background: linear-gradient(135deg, #fff 0%, var(--accent) 60%, var(--accent2) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 12px; }
+  .hero p { color: var(--muted); font-size: 15px; max-width: 500px; margin: 0 auto 16px; line-height: 1.6; }
+  .free-banner { display: inline-flex; align-items: center; gap: 8px; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25); border-radius: 100px; padding: 6px 16px; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--green); letter-spacing: 0.5px; }
+
+  /* FORM */
+  .estimator-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .full-width { grid-column: 1 / -1; }
+  .field { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; transition: border-color 0.2s; }
+  .field:focus-within { border-color: var(--accent); }
+  .field label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 7px; }
+  .field input, .field select, .field textarea { width: 100%; background: transparent; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; }
+  .field select option { background: #1a1e26; }
+  .field textarea { resize: none; height: 76px; line-height: 1.5; }
+  .range-wrap { display: flex; align-items: center; gap: 12px; }
+  .range-wrap input[type=range] { flex: 1; -webkit-appearance: none; height: 4px; border-radius: 2px; background: var(--border); outline: none; }
+  .range-wrap input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 0 0 4px rgba(245,166,35,0.15); }
+  .range-val { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--accent); min-width: 60px; text-align: right; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px; }
+  .chip { padding: 5px 13px; border-radius: 100px; border: 1px solid var(--border); font-size: 12px; cursor: pointer; transition: all 0.15s; color: var(--muted); user-select: none; }
+  .chip:hover { border-color: var(--accent); color: var(--text); }
+  .chip.active { background: rgba(245,166,35,0.12); border-color: var(--accent); color: var(--accent); }
+
+  /* ESTIMATE BUTTON */
+  .estimate-btn { width: 100%; padding: 17px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%); border: none; border-radius: 10px; font-family: 'Bebas Neue', sans-serif; font-size: 21px; letter-spacing: 2px; color: #000; cursor: pointer; transition: opacity 0.2s, transform 0.1s; margin-top: 4px; }
+  .estimate-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+  .estimate-btn:active { transform: translateY(0); }
+  .estimate-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* LOADING */
+  .loading-overlay { display: none; text-align: center; padding: 48px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; margin-top: 28px; }
+  .loading-overlay.show { display: block; animation: fadeUp 0.3s ease; }
+  .spinner { width: 38px; height: 38px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 14px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-overlay p { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+
+  /* RESULTS */
+  #results { margin-top: 28px; display: none; animation: fadeUp 0.4s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .results-header h2 { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 2px; color: var(--accent); }
+  .badge { font-family: 'DM Mono', monospace; font-size: 11px; padding: 4px 10px; border-radius: 100px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: var(--green); letter-spacing: 1px; }
+
+  /* COST HERO */
+  .cost-hero { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; text-align: center; margin-bottom: 14px; position: relative; overflow: hidden; }
+  .cost-hero::before { content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 300px; height: 300px; background: radial-gradient(circle, rgba(245,166,35,0.08) 0%, transparent 70%); pointer-events: none; }
+  .cost-label { font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 8px; }
+  .cost-range { font-family: 'Bebas Neue', sans-serif; font-size: clamp(32px, 6vw, 52px); letter-spacing: 2px; background: linear-gradient(135deg, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; margin-bottom: 6px; }
+  .cost-sub { font-size: 13px; color: var(--muted); }
+
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 5px; }
+  .stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; color: var(--text); }
+  .stat-note { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ===================== */
+  /* ENHANCED BREAKDOWN    */
+  /* ===================== */
+  .breakdown-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 14px; }
+  .breakdown-title-row { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .breakdown-title { font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); }
+  .expand-all-btn { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); background: none; border: 1px solid rgba(245,166,35,0.3); border-radius: 100px; padding: 3px 12px; cursor: pointer; transition: all 0.15s; }
+  .expand-all-btn:hover { background: rgba(245,166,35,0.1); }
+
+  /* VISUAL BAR SUMMARY */
+  .bd-bar-summary { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .bd-stacked-bar { display: flex; height: 20px; border-radius: 6px; overflow: hidden; gap: 2px; margin-bottom: 10px; }
+  .bd-bar-seg { transition: flex 0.5s ease; cursor: pointer; position: relative; }
+  .bd-bar-seg:hover { opacity: 0.8; }
+  .bd-bar-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+  .bd-legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); cursor: pointer; }
+  .bd-legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  /* TRADE GROUP (parent row) */
+  .trade-group { border-bottom: 1px solid var(--border); }
+  .trade-group:last-child { border-bottom: none; }
+  .trade-header { display: flex; align-items: center; padding: 14px 20px; cursor: pointer; transition: background 0.15s; gap: 12px; user-select: none; }
+  .trade-header:hover { background: var(--surface2); }
+  .trade-expand-icon { font-size: 10px; color: var(--muted); transition: transform 0.2s; width: 14px; flex-shrink: 0; }
+  .trade-group.open .trade-expand-icon { transform: rotate(90deg); }
+  .trade-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  .trade-name { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+  .trade-desc { font-size: 11px; color: var(--muted); flex: 2; display: none; }
+  .trade-pct-bar { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; max-width: 120px; }
+  .trade-pct-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+  .trade-pct { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); min-width: 36px; text-align: right; }
+  .trade-cost { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--accent); min-width: 130px; text-align: right; }
+
+  /* SUB-ITEMS (children) */
+  .trade-subitems { display: none; background: var(--surface2); border-top: 1px solid var(--border); }
+  .trade-group.open .trade-subitems { display: block; animation: expandDown 0.2s ease; }
+  @keyframes expandDown { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  .subitem-row { display: flex; align-items: center; padding: 10px 20px 10px 52px; border-bottom: 1px solid rgba(34,37,48,0.8); gap: 10px; }
+  .subitem-row:last-child { border-bottom: none; }
+  .subitem-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; opacity: 0.7; }
+  .subitem-name { font-size: 12px; color: var(--muted); flex: 1; }
+  .subitem-note { font-size: 11px; color: #4a5060; flex: 2; font-style: italic; }
+  .subitem-pct { font-family: 'DM Mono', monospace; font-size: 11px; color: #4a5060; min-width: 36px; text-align: right; }
+  .subitem-cost { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); min-width: 130px; text-align: right; }
+
+  /* TIMELINE */
+  .timeline-bar { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+  .timeline-bar h3 { font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 14px; }
+  .phases { display: flex; gap: 4px; height: 30px; border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
+  .phase-seg { display: flex; align-items: center; justify-content: center; font-size: 10px; font-family: 'DM Mono', monospace; color: rgba(0,0,0,0.7); font-weight: 500; letter-spacing: 0.5px; overflow: hidden; white-space: nowrap; }
+  .phase-legend { display: flex; flex-wrap: wrap; gap: 10px; }
+  .phase-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+  .phase-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* AI INSIGHT */
+  .ai-insight { background: var(--surface2); border: 1px solid rgba(59,130,246,0.25); border-left: 3px solid var(--blue); border-radius: 10px; padding: 14px 18px; margin-bottom: 14px; }
+  .ai-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; font-family: 'DM Mono', monospace; color: var(--blue); margin-bottom: 7px; }
+  .ai-insight p { font-size: 13px; color: var(--text); line-height: 1.6; }
+
+  /* RISK FLAGS */
+  .risk-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; margin-bottom: 14px; }
+  .risk-title { font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 14px; }
+  .risk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .risk-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .risk-item .ri-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-family: 'DM Mono', monospace; color: var(--muted); margin-bottom: 4px; }
+  .risk-item .ri-val { font-size: 13px; color: var(--text); font-weight: 500; }
+  .risk-item .ri-note { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .risk-level { display: inline-block; padding: 1px 8px; border-radius: 100px; font-size: 10px; font-family: 'DM Mono', monospace; font-weight: 600; letter-spacing: 0.5px; }
+  .risk-low { background: rgba(34,197,94,0.12); color: var(--green); border: 1px solid rgba(34,197,94,0.25); }
+  .risk-med { background: rgba(245,166,35,0.12); color: var(--accent); border: 1px solid rgba(245,166,35,0.25); }
+  .risk-high { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
+
+  /* PAYWALL MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.show { display: flex; animation: fadeIn 0.25s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; max-width: 580px; width: 100%; padding: 36px 32px; position: relative; animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; }
+  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-close { position: absolute; top: 16px; right: 18px; background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; line-height: 1; }
+  .modal-close:hover { color: var(--text); }
+  .modal h2 { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: 2px; color: var(--accent); margin-bottom: 6px; }
+  .modal-sub { color: var(--muted); font-size: 14px; line-height: 1.5; margin-bottom: 28px; }
+  .modal-sub strong { color: var(--text); }
+  .bundles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+  .bundle { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 20px 14px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; }
+  .bundle:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .bundle.selected { border-color: var(--accent); background: rgba(245,166,35,0.07); }
+  .b-badge { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #000; font-size: 10px; font-weight: 700; padding: 2px 10px; border-radius: 100px; white-space: nowrap; font-family: 'DM Mono', monospace; }
+  .b-name { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; color: var(--muted); margin-bottom: 4px; }
+  .b-tokens { font-family: 'Bebas Neue', sans-serif; font-size: 38px; color: var(--accent); line-height: 1; }
+  .b-unit { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .b-price { font-family: 'DM Mono', monospace; font-size: 22px; color: var(--text); font-weight: 500; }
+  .b-per { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .paypal-section { text-align: center; }
+  .paypal-btn { width: 100%; padding: 15px; background: #0070ba; border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600; color: #fff; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
+  .paypal-btn:hover { background: #005ea6; }
+  .paypal-note { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; line-height: 1.9; }
+  .redeem-section { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 18px; }
+  .redeem-section p { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .redeem-row { display: flex; gap: 8px; }
+  .redeem-row input { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; outline: none; text-transform: uppercase; letter-spacing: 1px; }
+  .redeem-row input:focus { border-color: var(--accent); }
+  .redeem-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 13px; font-family: 'DM Mono', monospace; white-space: nowrap; transition: all 0.15s; }
+  .redeem-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .redeem-msg { font-size: 12px; margin-top: 8px; font-family: 'DM Mono', monospace; }
+  footer { padding: 28px 0; text-align: center; color: var(--muted); font-size: 11px; border-top: 1px solid var(--border); margin-top: 40px; font-family: 'DM Mono', monospace; line-height: 1.9; }
+
+  @media (max-width: 640px) {
+    .estimator-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .full-width { grid-column: 1; }
+    .bundles { grid-template-columns: 1fr; }
+    .risk-grid { grid-template-columns: 1fr; }
+    .trade-desc { display: none !important; }
+    .subitem-note { display: none; }
+  }
+  @media (min-width: 768px) {
+    .trade-desc { display: block; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div>
+      <div class="logo">Evans<span>Engineering</span></div>
+      <div class="tagline">Global Construction Cost Estimator</div>
+    </div>
+    <div class="header-right">
+      <div class="token-bar">
+        <span class="tk-label">Estimates</span>
+        <span class="tk-count" id="token-display">2</span>
+        <span class="tk-unit">left</span>
+      </div>
+      <button class="buy-more-btn" onclick="openPaywall()">+ Buy More</button>
+    </div>
+  </header>
+
+  <div class="hero">
+    <h1>ESTIMATE ANY<br/>BUILD, ANYWHERE</h1>
+    <p>AI-powered cost breakdowns for any construction project worldwide — residential, commercial, industrial or public infrastructure.</p>
+    <div class="free-banner">✦ 2 Free Estimates Included · No Sign-Up Required</div>
+  </div>
+
+  <div class="estimator-grid">
+    <div class="field full-width">
+      <label>Project Type</label>
+      <div class="chips" id="type-chips">
+        <div class="chip active" data-val="Residential">🏠 Residential</div>
+        <div class="chip" data-val="Commercial">🏢 Commercial</div>
+        <div class="chip" data-val="Industrial">🏭 Industrial</div>
+        <div class="chip" data-val="Public Infrastructure">🌉 Public Infrastructure</div>
+        <div class="chip" data-val="Hospitality">🏨 Hospitality</div>
+        <div class="chip" data-val="Healthcare">🏥 Healthcare</div>
+        <div class="chip" data-val="Education">🏫 Education</div>
+        <div class="chip" data-val="Mixed-Use">🏗️ Mixed-Use</div>
+      </div>
+    </div>
+    <div class="field full-width">
+      <label>Project Description</label>
+      <textarea id="description" placeholder="Describe your project — e.g. 5-story office building with underground parking, a 2km highway bypass, a 3-bedroom villa with pool…"></textarea>
+    </div>
+    <div class="field">
+      <label>Country / Region</label>
+      <select id="country">
+        <option value="">Select country...</option>
+        <optgroup label="Africa"><option>Kenya</option><option>Nigeria</option><option>South Africa</option><option>Egypt</option><option>Ghana</option><option>Ethiopia</option><option>Tanzania</option><option>Rwanda</option><option>Uganda</option></optgroup>
+        <optgroup label="Middle East"><option>UAE</option><option>Saudi Arabia</option><option>Qatar</option><option>Kuwait</option><option>Bahrain</option></optgroup>
+        <optgroup label="Europe"><option>United Kingdom</option><option>Germany</option><option>France</option><option>Spain</option><option>Netherlands</option><option>Poland</option><option>Sweden</option><option>Norway</option></optgroup>
+        <optgroup label="North America"><option>United States</option><option>Canada</option><option>Mexico</option></optgroup>
+        <optgroup label="South America"><option>Brazil</option><option>Colombia</option><option>Chile</option><option>Argentina</option></optgroup>
+        <optgroup label="Asia Pacific"><option>China</option><option>India</option><option>Japan</option><option>Singapore</option><option>Australia</option><option>Indonesia</option><option>Vietnam</option><option>Philippines</option></optgroup>
+      </select>
+    </div>
+    <div class="field">
+      <label>Output Currency</label>
+      <select id="currency">
+        <option value="USD">USD — US Dollar</option><option value="KES">KES — Kenyan Shilling</option><option value="NGN">NGN — Nigerian Naira</option><option value="ZAR">ZAR — South African Rand</option><option value="EUR">EUR — Euro</option><option value="GBP">GBP — British Pound</option><option value="AED">AED — UAE Dirham</option><option value="SAR">SAR — Saudi Riyal</option><option value="INR">INR — Indian Rupee</option><option value="CNY">CNY — Chinese Yuan</option><option value="JPY">JPY — Japanese Yen</option><option value="AUD">AUD — Australian Dollar</option><option value="CAD">CAD — Canadian Dollar</option><option value="BRL">BRL — Brazilian Real</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Gross Floor Area (m²)</label>
+      <div class="range-wrap">
+        <input type="range" id="area-slider" min="50" max="100000" value="500" step="50" oninput="document.getElementById('area-val').textContent=parseInt(this.value).toLocaleString()+' m²'"/>
+        <span class="range-val" id="area-val">500 m²</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Number of Floors / Storeys</label>
+      <div class="range-wrap">
+        <input type="range" id="floors-slider" min="1" max="80" value="3" step="1" oninput="document.getElementById('floors-val').textContent=this.value+' floor'+(this.value>1?'s':'')"/>
+        <span class="range-val" id="floors-val">3 floors</span>
+      </div>
+    </div>
+    <div class="field full-width">
+      <label>Finish Quality</label>
+      <div class="chips" id="quality-chips">
+        <div class="chip" data-val="Economy">Economy</div>
+        <div class="chip active" data-val="Standard">Standard</div>
+        <div class="chip" data-val="Premium">Premium</div>
+        <div class="chip" data-val="Luxury">Luxury</div>
+        <div class="chip" data-val="Ultra-Luxury">Ultra-Luxury</div>
+      </div>
+    </div>
+    <div class="field full-width">
+      <label>Special Features / Inclusions</label>
+      <div class="chips" id="features-chips">
+        <div class="chip" data-val="Basement / Underground Parking">🅿️ Underground Parking</div>
+        <div class="chip" data-val="Swimming Pool">🏊 Swimming Pool</div>
+        <div class="chip" data-val="Smart Building Automation">🤖 Smart Automation</div>
+        <div class="chip" data-val="Solar / Renewable Energy">☀️ Solar Energy</div>
+        <div class="chip" data-val="Green / LEED Certification">🌿 Green Certification</div>
+        <div class="chip" data-val="Seismic / Earthquake Resistance">⚡ Seismic Resistance</div>
+        <div class="chip" data-val="High-End MEP Systems">🔧 High-End MEP</div>
+        <div class="chip" data-val="Rooftop Garden">🌱 Rooftop Garden</div>
+        <div class="chip" data-val="Helipad">🚁 Helipad</div>
+        <div class="chip" data-val="Data Center / Server Room">🖥️ Data Center</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="estimate-btn" id="estimate-btn" onclick="runEstimate()">⚡ GENERATE COST ESTIMATE</button>
+
+  <div class="loading-overlay" id="loading">
+    <div class="spinner"></div>
+    <p id="loading-msg">ANALYZING PROJECT PARAMETERS...</p>
+  </div>
+
+  <div id="results">
+    <div class="results-header">
+      <h2>COST ESTIMATE</h2>
+      <span class="badge">● AI GENERATED</span>
+    </div>
+
+    <!-- TOTAL COST -->
+    <div class="cost-hero">
+      <div class="cost-label">ESTIMATED TOTAL PROJECT COST</div>
+      <div class="cost-range" id="cost-range">—</div>
+      <div class="cost-sub" id="cost-psm">— per m² · Based on current market rates</div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Construction Duration</div><div class="stat-val" id="stat-duration">—</div><div class="stat-note">Estimated timeline</div></div>
+      <div class="stat-card"><div class="stat-label">Cost per m²</div><div class="stat-val" id="stat-psm">—</div><div class="stat-note">All-in blended rate</div></div>
+      <div class="stat-card"><div class="stat-label">Contingency Reserve</div><div class="stat-val" id="stat-contingency">—</div><div class="stat-note">Recommended buffer</div></div>
+    </div>
+
+    <!-- DETAILED BREAKDOWN -->
+    <div class="breakdown-wrap">
+      <div class="breakdown-title-row">
+        <span class="breakdown-title">📊 Detailed Cost Breakdown by Trade</span>
+        <button class="expand-all-btn" id="expand-all-btn" onclick="toggleAllTrades()">Expand All</button>
+      </div>
+      <div class="bd-bar-summary">
+        <div class="bd-stacked-bar" id="bd-stacked-bar"></div>
+        <div class="bd-bar-legend" id="bd-bar-legend"></div>
+      </div>
+      <div id="breakdown-trades"></div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="timeline-bar">
+      <h3>Project Phase Timeline</h3>
+      <div class="phases" id="phases-bar"></div>
+      <div class="phase-legend" id="phases-legend"></div>
+    </div>
+
+    <!-- RISK PANEL -->
+    <div class="risk-panel">
+      <div class="risk-title">⚠️ Project Risk & Market Indicators</div>
+      <div class="risk-grid" id="risk-grid"></div>
+    </div>
+
+    <!-- AI INSIGHT -->
+    <div class="ai-insight">
+      <div class="ai-label">🤖 AI Analysis & Recommendations</div>
+      <p id="ai-insight-text">—</p>
+    </div>
+  </div>
+
+  <footer>
+    Evans Engineering & Construction · AI-Powered Construction Cost Estimator<br/>
+    Estimates are indicative only — engage a qualified QS for formal pricing<br/>
+    Cost benchmarks: RICS · Turner & Townsend · Regional market data
+  </footer>
+</div>
+
+<!-- PAYWALL MODAL -->
+<div class="modal-overlay" id="paywall-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closePaywall()">✕</button>
+    <h2>GET MORE ESTIMATES</h2>
+    <p class="modal-sub">You've used your <strong>2 free estimates</strong>. Purchase a token bundle to continue — affordable for professionals worldwide.</p>
+    <div class="bundles">
+      <div class="bundle" data-tokens="10" data-price="3.00" onclick="selectBundle(this)"><div class="b-name">Starter</div><div class="b-tokens">10</div><div class="b-unit">estimates</div><div class="b-price">$3.00</div><div class="b-per">$0.30 each</div></div>
+      <div class="bundle selected" data-tokens="30" data-price="7.00" onclick="selectBundle(this)"><div class="b-badge">BEST VALUE</div><div class="b-name">Pro</div><div class="b-tokens">30</div><div class="b-unit">estimates</div><div class="b-price">$7.00</div><div class="b-per">$0.23 each</div></div>
+      <div class="bundle" data-tokens="75" data-price="15.00" onclick="selectBundle(this)"><div class="b-name">Studio</div><div class="b-tokens">75</div><div class="b-unit">estimates</div><div class="b-price">$15.00</div><div class="b-per">$0.20 each</div></div>
+    </div>
+    <div class="paypal-section">
+      <button class="paypal-btn" onclick="goToPayPal()">
+        <svg height="18" viewBox="0 0 48 16" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M6 2h4.5c2 0 3 1 2.7 3C12.8 7.2 11.2 8 9.2 8H7.5L7 11H4.5L6 2zm1.8 4.5h1.5c.8 0 1.4-.3 1.5-1 .1-.6-.3-1-1.1-1H8.3l-.5 2zM15 5h2.3l-.1.9c.6-.7 1.4-1.1 2.3-1.1 1.6 0 2.4 1 2.1 2.7L21 11h-2.3l.5-3c.2-.8-.1-1.2-.8-1.2-.8 0-1.3.5-1.5 1.3L16.5 11H14.2L15 5zM23 5h2.3l-1 6H22L23 5zm.4-3h2.3l-.3 1.8h-2.3L23.4 2zM27 5h2.2l.7 4 2-4h2.4l-3.5 6h-2.3L27 5z"/></svg>
+        Pay with PayPal · <span id="paypal-amount">$7.00</span>
+      </button>
+      <div class="paypal-note">🔒 Secure checkout · All major cards accepted via PayPal<br/>After payment, email your PayPal receipt to <strong style="color:var(--text)">info@evansengineering.com</strong> — token code within 24hrs</div>
+    </div>
+    <div class="redeem-section">
+      <p>Already purchased? Enter your token code from your confirmation email:</p>
+      <div class="redeem-row">
+        <input type="text" id="redeem-input" placeholder="EVAN-XXXX-XXXX" maxlength="16"/>
+        <button class="redeem-btn" onclick="redeemCode()">Redeem</button>
+      </div>
+      <div class="redeem-msg" id="redeem-msg"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// API KEY — injected by GitHub Actions at deploy time
+// ============================================================
+const ANTHROPIC_API_KEY = atob('ANTHROPIC_KEY_PLACEHOLDER');
+
+// ============================================================
+// TOKEN SYSTEM
+// ============================================================
+function getTokens() { return parseInt(localStorage.getItem('ec_tokens') ?? '2'); }
+function setTokens(n) { localStorage.setItem('ec_tokens', n); updateTokenDisplay(); }
+function useToken() { const t = getTokens(); if (t <= 0) return false; setTokens(t - 1); return true; }
+function updateTokenDisplay() {
+  const t = getTokens();
+  const el = document.getElementById('token-display');
+  el.textContent = t;
+  el.style.color = t === 0 ? 'var(--red)' : 'var(--accent)';
+}
+
+// ============================================================
+// PAYWALL
+// ============================================================
+let selectedBundle = { tokens: 30, price: '7.00' };
+function openPaywall() { document.getElementById('paywall-modal').classList.add('show'); }
+function closePaywall() { document.getElementById('paywall-modal').classList.remove('show'); }
+function selectBundle(el) {
+  document.querySelectorAll('.bundle').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedBundle = { tokens: parseInt(el.dataset.tokens), price: el.dataset.price };
+  document.getElementById('paypal-amount').textContent = '$' + el.dataset.price;
+}
+function goToPayPal() {
+  // Evans Nusu — PayPal Merchant ID (no PayPal.Me needed)
+  const merchantId = 'N4NUM2GQAKVAA';
+  const itemName = encodeURIComponent('Evans Engineering Estimator – ' + selectedBundle.label + ' Bundle (' + selectedBundle.tokens + ' estimates)');
+  const url = 'https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=' + merchantId + '&item_name=' + itemName + '&amount=' + selectedBundle.price + '&currency_code=USD&no_shipping=1&return=https://evansengineering.com';
+  window.open(url, '_blank');
+  document.getElementById('redeem-msg').innerHTML = `<span style="color:var(--accent)">✓ After completing your <strong>$${selectedBundle.price}</strong> PayPal payment, email your receipt to Evans Engineering — you'll receive your token code within 24 hours.</span>`;
+}
+
+// ============================================================
+// TOKEN CODE REDEMPTION
+// Add codes after each sale: "CODE": numberOfTokens
+// ============================================================
+const VALID_CODES = {
+  // "EVAN-S001-2025": 10,
+  // "EVAN-P001-2025": 30,
+  // "EVAN-T001-2025": 75,
+};
+function redeemCode() {
+  const code = document.getElementById('redeem-input').value.trim().toUpperCase();
+  const msgEl = document.getElementById('redeem-msg');
+  const used = JSON.parse(localStorage.getItem('ec_used_codes') || '[]');
+  if (!code) { msgEl.innerHTML = '<span style="color:var(--red)">Please enter a code.</span>'; return; }
+  if (used.includes(code)) { msgEl.innerHTML = '<span style="color:var(--red)">⚠ Already redeemed.</span>'; return; }
+  if (!VALID_CODES[code]) { msgEl.innerHTML = '<span style="color:var(--red)">⚠ Code not found. Check your email or contact Evans Engineering.</span>'; return; }
+  const bonus = VALID_CODES[code];
+  const newTotal = getTokens() + bonus;
+  setTokens(newTotal);
+  used.push(code);
+  localStorage.setItem('ec_used_codes', JSON.stringify(used));
+  document.getElementById('redeem-input').value = '';
+  msgEl.innerHTML = `<span style="color:var(--green)">✓ ${bonus} estimates added! You now have ${newTotal} remaining.</span>`;
+  setTimeout(() => closePaywall(), 2500);
+}
+
+// ============================================================
+// CHIPS
+// ============================================================
+function setupChips(id, multi) {
+  document.getElementById(id).querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      if (!multi) { document.getElementById(id).querySelectorAll('.chip').forEach(c => c.classList.remove('active')); chip.classList.add('active'); }
+      else { chip.classList.toggle('active'); }
+    });
+  });
+}
+setupChips('type-chips', false);
+setupChips('quality-chips', false);
+setupChips('features-chips', true);
+function getSelected(id) { return [...document.querySelectorAll(`#${id} .chip.active`)].map(c => c.dataset.val); }
+
+// ============================================================
+// EXPAND/COLLAPSE TRADES
+// ============================================================
+function toggleTrade(el) {
+  el.closest('.trade-group').classList.toggle('open');
+  updateExpandAllBtn();
+}
+function toggleAllTrades() {
+  const groups = document.querySelectorAll('.trade-group');
+  const anyOpen = [...groups].some(g => g.classList.contains('open'));
+  groups.forEach(g => anyOpen ? g.classList.remove('open') : g.classList.add('open'));
+  updateExpandAllBtn();
+}
+function updateExpandAllBtn() {
+  const btn = document.getElementById('expand-all-btn');
+  const anyOpen = [...document.querySelectorAll('.trade-group')].some(g => g.classList.contains('open'));
+  btn.textContent = anyOpen ? 'Collapse All' : 'Expand All';
+}
+
+// ============================================================
+// CURRENCY FORMATTING
+// ============================================================
+const currSymbols = { USD:'$', KES:'KSh', NGN:'₦', ZAR:'R', EUR:'€', GBP:'£', AED:'AED', SAR:'SAR', INR:'₹', CNY:'¥', JPY:'¥', AUD:'A$', CAD:'C$', BRL:'R$' };
+function fmt(n, cur) {
+  const s = currSymbols[cur] || cur + ' ';
+  if (n >= 1e9) return s + (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return s + (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return s + Math.round(n/1e3).toLocaleString() + 'K';
+  return s + Math.round(n).toLocaleString();
+}
+
+// ============================================================
+// MAIN ESTIMATE
+// ============================================================
+async function runEstimate() {
+  if (getTokens() <= 0) { openPaywall(); return; }
+
+  const projectType = getSelected('type-chips')[0] || 'Residential';
+  const quality = getSelected('quality-chips')[0] || 'Standard';
+  const features = getSelected('features-chips');
+  const description = document.getElementById('description').value.trim();
+  const country = document.getElementById('country').value;
+  const currency = document.getElementById('currency').value;
+  const area = parseInt(document.getElementById('area-slider').value);
+  const floors = parseInt(document.getElementById('floors-slider').value);
+
+  if (!country) { alert('Please select a country.'); return; }
+  if (!description) { alert('Please enter a project description.'); return; }
+
+  const btn = document.getElementById('estimate-btn');
+  btn.disabled = true;
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('loading').classList.add('show');
+
+  const msgs = ['ANALYZING PROJECT PARAMETERS...','BENCHMARKING REGIONAL COST DATA...','CALCULATING TRADE ALLOCATIONS...','GENERATING DETAILED BREAKDOWN...'];
+  let mi = 0;
+  const msgEl = document.getElementById('loading-msg');
+  const ticker = setInterval(() => { mi = (mi+1)%msgs.length; msgEl.textContent = msgs[mi]; }, 1200);
+
+  const prompt = `You are a senior Quantity Surveyor with global construction cost expertise.
+
+Generate a DETAILED construction cost estimate for:
+PROJECT TYPE: ${projectType}
+DESCRIPTION: ${description}
+COUNTRY: ${country}
+QUALITY: ${quality} finish
+GROSS FLOOR AREA: ${area} m²
+FLOORS: ${floors}
+SPECIAL FEATURES: ${features.length > 0 ? features.join(', ') : 'None'}
+OUTPUT CURRENCY: ${currency}
+
+Respond ONLY with valid JSON, no markdown:
+{
+  "totalCostLow": <number>,
+  "totalCostHigh": <number>,
+  "costPerSqmLow": <number>,
+  "costPerSqmHigh": <number>,
+  "durationMonths": <number>,
+  "contingencyPct": <number 5-20>,
+  "trades": [
+    {
+      "name": "Site Preparation & Earthworks",
+      "description": "Land clearing, excavation, grading and site access",
+      "pct": <number>,
+      "color": "#f5a623",
+      "subitems": [
+        { "name": "Demolition & Clearing", "pct": <number of parent trade>, "note": "<brief note>" },
+        { "name": "Bulk Excavation", "pct": <number>, "note": "<brief note>" },
+        { "name": "Grading & Compaction", "pct": <number>, "note": "<brief note>" },
+        { "name": "Temporary Site Works", "pct": <number>, "note": "<brief note>" }
+      ]
+    },
+    {
+      "name": "Foundations & Substructure",
+      "description": "Footings, piling, basement slab and retaining walls",
+      "pct": <number>,
+      "color": "#e85d26",
+      "subitems": [
+        { "name": "Piling / Footings", "pct": <number>, "note": "<brief note>" },
+        { "name": "Ground Beams & Raft", "pct": <number>, "note": "<brief note>" },
+        { "name": "Basement / Podium Slab", "pct": <number>, "note": "<brief note>" },
+        { "name": "Retaining & Waterproofing", "pct": <number>, "note": "<brief note>" }
+      ]
+    },
+    {
+      "name": "Structural Frame & Upper Floors",
+      "description": "Columns, beams, slabs and staircase structure",
+      "pct": <number>,
+      "color": "#ef4444",
+      "subitems": [
+        { "name": "Concrete Frame / Steel Structure", "pct": <number>, "note": "<brief note>" },
+        { "name": "Upper Floor Slabs", "pct": <number>, "note": "<brief note>" },
+        { "name": "Staircases & Lift Shafts", "pct": <number>, "note": "<brief note>" },
+        { "name": "Structural Steelwork", "pct": <number>, "note": "<brief note>" }
+      ]
+    },
+    {
+      "name": "Roofing & Waterproofing",
+      "description": "Roof structure, covering, insulation and waterproofing",
+      "pct": <number>,
+      "color": "#3b82f6",
+      "subitems": [
+        { "name": "Roof Structure", "pct": <number>, "note": "<brief note>" },
+        { "name": "Roof Covering & Insulation", "pct": <number>, "note": "<brief note>" },
+        { "name": "Waterproofing Membranes", "pct": <number>, "note": "<brief note>" },
+        { "name": "Gutters, Downpipes & Drainage", "pct": <number>, "note": "<brief note>" }
+      ]
+    },
+    {
+      "name": "External Envelope & Facade",
+      "description": "External walls, cladding, windows and external doors",
+      "pct": <number>,
+      "color": "#06b6d4",
+      "subitems": [
+        { "name": "External Walling / Masonry", "pct": <number>, "note": "<brief note>" },
+        { "name": "Facade Cladding / Curtain Wall", "pct": <number>, "note": "<brief note>" },
+        { "name": "Windows & Glazing", "pct": <number>, "note": "<brief note>" },
+        { "name": "External Doors & Frames", "pct": <number>, "note": "<brief note>" }
+      ]
+    },
+    {
+      "name": "Mechanical (HVAC & Plumbing)",
+      "description": "Air conditioning, ventilation, plumbing and fire suppression",
+      "pct": <number>,
+      "color": "#22c55e",
+      "subitems": [
+        { "name": "HVAC / Air Conditioning", "pct": <number>, "note": "<brief note>" },
+        { "name": "Plumbing & Sanitation", "pct": <number>, "note": "<brief note>" },
+        { "name": "Fire Suppression / Sprinklers", "pct": <number>, "note": "<brief note>" },
+        { "name": "Gas Installations", "pct": <number>, "note": "<brief note>" }
+      ]
+    },
+    {
+      "name": "Electrical & Low Voltage",
+      "description": "Power, lighting, data, security and specialist electrical",
+      "pct": <number>,
+      "color": "#eab308",
+      "subitems": [
+        { "name": "Main Electrical Distribution", "pct": <number>, "note": "<brief note>" },
+        { "name": "Lighting & Power Fitout", "pct": <number>, "note": "<brief note>" },
+        { "name": "Data, Comms & AV", "pct": <number>, "note": "<brief note>" },
+        { "name": "Security, CCTV & Access Control", "pct": <number>, "note": "<brief note>" },
+        { "name": "Lifts & Escalators", "pct": <number>, "note": "<brief note>" }
+      ]
+    },
+    {
+      "name": "Internal Finishes",
+      "description": "Floors, walls, ceilings, joinery and internal doors",
+      "pct": <number>,
+      "color": "#a855f7",
+      "subitems": [
+        { "name": "Floor Finishes", "pct": <number>, "note": "<brief note>" },
+        { "name": "Wall Finishes & Plastering", "pct": <number>, "note": "<brief note>" },
+        { "name": "Ceiling Systems", "pct": <number>, "note": "<brief note>" },
+        { "name": "Internal Doors & Joinery", "pct": <number>, "note": "<brief note>" },
+        { "name": "Sanitary Fittings & Fixtures", "pct": <number>, "note": "<brief note>" }
+      ]
+    },
+    {
+      "name": "External Works & Landscaping",
+      "description": "Paving, parking, fencing, landscaping and external utilities",
+      "pct": <number>,
+      "color": "#10b981",
+      "subitems": [
+        { "name": "External Paving & Roads", "pct": <number>, "note": "<brief note>" },
+        { "name": "Parking & Hard Landscaping", "pct": <number>, "note": "<brief note>" },
+        { "name": "Soft Landscaping & Planting", "pct": <number>, "note": "<brief note>" },
+        { "name": "Fencing, Gates & Boundary", "pct": <number>, "note": "<brief note>" },
+        { "name": "External Utilities & Connections", "pct": <number>, "note": "<brief note>" }
+      ]
+    },
+    {
+      "name": "Professional Fees & Statutory",
+      "description": "Design fees, QS, project management, permits and approvals",
+      "pct": <number>,
+      "color": "#ec4899",
+      "subitems": [
+        { "name": "Architectural & Engineering Fees", "pct": <number>, "note": "<brief note>" },
+        { "name": "Quantity Surveying Fees", "pct": <number>, "note": "<brief note>" },
+        { "name": "Project Management", "pct": <number>, "note": "<brief note>" },
+        { "name": "Building Permits & Approvals", "pct": <number>, "note": "<brief note>" },
+        { "name": "Statutory Inspections & Tests", "pct": <number>, "note": "<brief note>" }
+      ]
+    },
+    {
+      "name": "Contingency & Escalation",
+      "description": "Risk reserve, price escalation and unforeseen costs",
+      "pct": <number>,
+      "color": "#6b7280",
+      "subitems": [
+        { "name": "Design Risk Contingency", "pct": <number>, "note": "<brief note>" },
+        { "name": "Construction Risk Reserve", "pct": <number>, "note": "<brief note>" },
+        { "name": "Price Escalation Allowance", "pct": <number>, "note": "<brief note>" },
+        { "name": "Employer's Contingency", "pct": <number>, "note": "<brief note>" }
+      ]
+    }
+  ],
+  "phases": [
+    {"name":"Design & Permits","durationWeeks":<number>,"color":"#3b82f6"},
+    {"name":"Site Prep","durationWeeks":<number>,"color":"#f5a623"},
+    {"name":"Substructure","durationWeeks":<number>,"color":"#e85d26"},
+    {"name":"Structure","durationWeeks":<number>,"color":"#ef4444"},
+    {"name":"Envelope","durationWeeks":<number>,"color":"#06b6d4"},
+    {"name":"MEP Rough-in","durationWeeks":<number>,"color":"#22c55e"},
+    {"name":"Finishes","durationWeeks":<number>,"color":"#a855f7"},
+    {"name":"Commissioning","durationWeeks":<number>,"color":"#ec4899"}
+  ],
+  "risks": [
+    {"label":"Overall Cost Risk","value":"<Low/Medium/High>","note":"<one sentence>","level":"<low/med/high>"},
+    {"label":"Material Cost Volatility","value":"<Low/Medium/High>","note":"<one sentence>","level":"<low/med/high>"},
+    {"label":"Labour Availability","value":"<Low/Medium/High>","note":"<one sentence>","level":"<low/med/high>"},
+    {"label":"Regulatory Complexity","value":"<Low/Medium/High>","note":"<one sentence>","level":"<low/med/high>"},
+    {"label":"Currency / Inflation Risk","value":"<Low/Medium/High>","note":"<one sentence>","level":"<low/med/high>"},
+    {"label":"Site Conditions Risk","value":"<Low/Medium/High>","note":"<one sentence>","level":"<low/med/high>"}
+  ],
+  "insight": "<3-4 sentences: key cost drivers, regional market conditions, specific risks and recommendations for this project in ${country}>"
+}
+
+IMPORTANT: All trade pct values must sum to 100. Each subitem pct is its share WITHIN that parent trade (subitems of each trade must also sum to 100). Use realistic ${country} market rates. All money in ${currency}.`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 4000, messages: [{ role: "user", content: prompt }] })
+    });
+    const data = await res.json();
+    const text = data.content.map(i => i.text || '').join('');
+    const result = JSON.parse(text.replace(/```json|```/g, '').trim());
+
+    useToken();
+    clearInterval(ticker);
+    document.getElementById('loading').classList.remove('show');
+    btn.disabled = false;
+    renderResults(result, currency);
+
+    const remaining = getTokens();
+    if (remaining === 1) setTimeout(() => { if (confirm('⚠️ Only 1 estimate left! Top up now?')) openPaywall(); }, 1500);
+    else if (remaining === 0) setTimeout(() => openPaywall(), 2000);
+
+  } catch(e) {
+    clearInterval(ticker);
+    document.getElementById('loading').classList.remove('show');
+    btn.disabled = false;
+    alert('Could not generate estimate. Please try again.');
+  }
+}
+
+// ============================================================
+// RENDER RESULTS
+// ============================================================
+function renderResults(r, cur) {
+  const midTotal = (r.totalCostLow + r.totalCostHigh) / 2;
+
+  // Header
+  document.getElementById('cost-range').textContent = fmt(r.totalCostLow, cur) + ' – ' + fmt(r.totalCostHigh, cur);
+  document.getElementById('cost-psm').textContent = fmt(r.costPerSqmLow, cur) + ' – ' + fmt(r.costPerSqmHigh, cur) + ' per m² · Based on current market rates';
+  document.getElementById('stat-duration').textContent = r.durationMonths + ' months';
+  document.getElementById('stat-psm').textContent = fmt((r.costPerSqmLow + r.costPerSqmHigh) / 2, cur);
+  document.getElementById('stat-contingency').textContent = r.contingencyPct + '%';
+
+  // Stacked visual bar
+  const barEl = document.getElementById('bd-stacked-bar');
+  const legEl = document.getElementById('bd-bar-legend');
+  barEl.innerHTML = r.trades.map(t =>
+    `<div class="bd-bar-seg" style="flex:${t.pct};background:${t.color}" title="${t.name}: ${t.pct}%"></div>`
+  ).join('');
+  legEl.innerHTML = r.trades.map(t =>
+    `<div class="bd-legend-item"><span class="bd-legend-dot" style="background:${t.color}"></span>${t.name} ${t.pct}%</div>`
+  ).join('');
+
+  // Trade groups with subitems
+  const tradesEl = document.getElementById('breakdown-trades');
+  tradesEl.innerHTML = r.trades.map(t => {
+    const lo = r.totalCostLow * t.pct / 100;
+    const hi = r.totalCostHigh * t.pct / 100;
+    const subitems = (t.subitems || []).map(s => {
+      const slo = lo * s.pct / 100;
+      const shi = hi * s.pct / 100;
+      return `<div class="subitem-row">
+        <span class="subitem-dot" style="background:${t.color}"></span>
+        <span class="subitem-name">${s.name}</span>
+        <span class="subitem-note">${s.note || ''}</span>
+        <span class="subitem-pct">${s.pct}%</span>
+        <span class="subitem-cost">${fmt(slo,cur)} – ${fmt(shi,cur)}</span>
+      </div>`;
+    }).join('');
+
+    return `<div class="trade-group">
+      <div class="trade-header" onclick="toggleTrade(this)">
+        <span class="trade-expand-icon">▶</span>
+        <span class="trade-dot" style="background:${t.color}"></span>
+        <span class="trade-name">${t.name}</span>
+        <span class="trade-desc">${t.description || ''}</span>
+        <div class="trade-pct-bar"><div class="trade-pct-fill" style="width:${t.pct}%;background:${t.color}"></div></div>
+        <span class="trade-pct">${t.pct}%</span>
+        <span class="trade-cost">${fmt(lo,cur)} – ${fmt(hi,cur)}</span>
+      </div>
+      <div class="trade-subitems">${subitems}</div>
+    </div>`;
+  }).join('');
+
+  // Timeline
+  const tw = r.phases.reduce((s,p) => s + p.durationWeeks, 0);
+  document.getElementById('phases-bar').innerHTML = r.phases.map(p =>
+    `<div class="phase-seg" style="flex:${p.durationWeeks};background:${p.color}">${(p.durationWeeks/tw*100)>8?p.name:''}</div>`
+  ).join('');
+  document.getElementById('phases-legend').innerHTML = r.phases.map(p =>
+    `<div class="phase-item"><span class="phase-dot" style="background:${p.color}"></span>${p.name} (${p.durationWeeks}w)</div>`
+  ).join('');
+
+  // Risk panel
+  const riskLevelClass = { low: 'risk-low', med: 'risk-med', high: 'risk-high' };
+  document.getElementById('risk-grid').innerHTML = (r.risks || []).map(risk =>
+    `<div class="risk-item">
+      <div class="ri-label">${risk.label}</div>
+      <div class="ri-val"><span class="risk-level ${riskLevelClass[risk.level] || 'risk-med'}">${risk.value}</span></div>
+      <div class="ri-note">${risk.note}</div>
+    </div>`
+  ).join('');
+
+  // AI insight
+  document.getElementById('ai-insight-text').textContent = r.insight;
+
+  const res = document.getElementById('results');
+  res.style.display = 'block';
+  res.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('load', updateTokenDisplay);
+document.getElementById('paywall-modal').addEventListener('click', e => {
+  if (e.target.id === 'paywall-modal') closePaywall();
+});
+</script>
+</body>
+</html>
