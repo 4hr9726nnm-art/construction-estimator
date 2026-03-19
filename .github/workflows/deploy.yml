@@ -19,7 +19,7 @@ jobs:
       - name: Inject Encoded API Key
         run: |
           ENCODED=$(echo -n "${{ secrets.ANTHROPIC_API_KEY }}" | base64)
-          sed -i "s/ANTHROPIC_KEY_PLACEHOLDER/${ENCODED}/g" index.html
+            sed -i "s/ANTHROPIC_KEY_PLACEHOLDER/${ENCODED}/g" index.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -27,3 +27,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./
           force_orphan: true
+
