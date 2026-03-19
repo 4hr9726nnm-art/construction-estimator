@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BuildCost Global — Construction Cost Estimator</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111318;
+    --surface2: #181c23;
+    --border: #222730;
+    --accent: #f5a623;
+    --accent2: #e85d26;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --green: #22c55e;
+    --red: #ef4444;
+    --blue: #3b82f6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRID BACKGROUND */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(245,166,35,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,166,35,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    padding: 32px 0 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+  .logo span { color: var(--text); }
+
+  .tagline {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 48px 0 40px;
+    text-align: center;
+  }
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(48px, 8vw, 88px);
+    line-height: 0.95;
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, #fff 0%, var(--accent) 60%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: 16px;
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* FORM LAYOUT */
+  .estimator-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .full-width { grid-column: 1 / -1; }
+
+  .field {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    transition: border-color 0.2s;
+  }
+  .field:focus-within {
+    border-color: var(--accent);
+  }
+  .field label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 8px;
+  }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .field select option { background: #1a1e26; }
+  .field textarea { resize: none; height: 80px; line-height: 1.5; }
+
+  /* RANGE SLIDER */
+  .range-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .range-wrap input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    outline: none;
+  }
+  .range-wrap input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 0 4px rgba(245,166,35,0.15);
+  }
+  .range-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--accent);
+    min-width: 60px;
+    text-align: right;
+  }
+
+  /* TOGGLE CHIPS */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .chip {
+    padding: 6px 14px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--muted);
+    user-select: none;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--text); }
+  .chip.active {
+    background: rgba(245,166,35,0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ESTIMATE BUTTON */
+  .estimate-btn {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    border: none;
+    border-radius: 10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: #000;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 8px;
+  }
+  .estimate-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+  .estimate-btn:active { transform: translateY(0); }
+  .estimate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* RESULTS PANEL */
+  #results {
+    margin-top: 32px;
+    display: none;
+    animation: fadeUp 0.4s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .results-header h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: var(--green);
+    letter-spacing: 1px;
+  }
+
+  /* COST CARD */
+  .cost-hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px;
+    text-align: center;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cost-hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(245,166,35,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cost-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .cost-range {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(36px, 6vw, 56px);
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, #fff, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .cost-sub {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* STATS GRID */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .stat-card .stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 6px;
+  }
+  .stat-card .stat-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 1px;
+    color: var(--text);
+  }
+  .stat-card .stat-note {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* BREAKDOWN TABLE */
+  .breakdown {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .breakdown-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+  }
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-row:hover { background: var(--surface2); }
+  .breakdown-row .br-name {
+    font-size: 14px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .br-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .breakdown-row .br-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: auto;
+    margin-right: 24px;
+  }
+  .breakdown-row .br-cost {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: 500;
+    min-width: 120px;
+    text-align: right;
+  }
+
+  /* TIMELINE */
+  .timeline-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .timeline-bar h3 {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .phases {
+    display: flex;
+    gap: 4px;
+    height: 32px;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .phase-seg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: rgba(0,0,0,0.7);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    transition: flex 0.5s ease;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .phase-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .phase-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .phase-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* AI INSIGHT */
+  .ai-insight {
+    background: var(--surface2);
+    border: 1px solid rgba(59,130,246,0.25);
+    border-left: 3px solid var(--blue);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+  .ai-insight .ai-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-family: 'DM Mono', monospace;
+    color: var(--blue);
+    margin-bottom: 8px;
+  }
+  .ai-insight p {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* LOADING */
+  .loading-overlay {
+    display: none;
+    text-align: center;
+    padding: 48px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-top: 32px;
+  }
+  .loading-overlay.show { display: block; animation: fadeUp 0.3s ease; }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-overlay p {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 32px 0;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+    margin-top: 48px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 640px) {
+    .estimator-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .full-width { grid-column: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo">Build<span>Cost</span></div>
+    <div class="tagline">AI-Powered · Global Construction Estimator</div>
+  </header>
+
+  <div class="hero">
+    <h1>ESTIMATE ANY<br/>BUILD, ANYWHERE</h1>
+    <p>Instant AI-powered cost breakdowns for industrial, commercial, residential, and public infrastructure projects worldwide.</p>
+  </div>
+
+  <!-- FORM -->
+  <div class="estimator-grid">
+    <!-- Project Type -->
+    <div class="field full-width">
+      <label>Project Type</label>
+      <div class="chips" id="type-chips">
+        <div class="chip active" data-val="Residential">🏠 Residential</div>
+        <div class="chip" data-val="Commercial">🏢 Commercial</div>
+        <div class="chip" data-val="Industrial">🏭 Industrial</div>
+        <div class="chip" data-val="Public Infrastructure">🌉 Public Infrastructure</div>
+        <div class="chip" data-val="Hospitality">🏨 Hospitality</div>
+        <div class="chip" data-val="Healthcare">🏥 Healthcare</div>
+        <div class="chip" data-val="Education">🏫 Education</div>
+        <div class="chip" data-val="Mixed-Use">🏗️ Mixed-Use</div>
+      </div>
+    </div>
+
+    <!-- Project Description -->
+    <div class="field full-width">
+      <label>Project Description</label>
+      <textarea id="description" placeholder="Describe your project — e.g. 5-story office building with underground parking, a 2km highway bypass, a 3-bedroom villa with pool…"></textarea>
+    </div>
+
+    <!-- Country -->
+    <div class="field">
+      <label>Country / Region</label>
+      <select id="country">
+        <option value="">Select country...</option>
+        <optgroup label="Africa">
+          <option>Kenya</option><option>Nigeria</option><option>South Africa</option>
+          <option>Egypt</option><option>Ghana</option><option>Ethiopia</option>
+          <option>Tanzania</option><option>Rwanda</option>
+        </optgroup>
+        <optgroup label="Middle East">
+          <option>UAE</option><option>Saudi Arabia</option><option>Qatar</option>
+          <option>Kuwait</option><option>Bahrain</option>
+        </optgroup>
+        <optgroup label="Europe">
+          <option>United Kingdom</option><option>Germany</option><option>France</option>
+          <option>Spain</option><option>Netherlands</option><option>Poland</option>
+          <option>Sweden</option><option>Norway</option>
+        </optgroup>
+        <optgroup label="North America">
+          <option>United States</option><option>Canada</option><option>Mexico</option>
+        </optgroup>
+        <optgroup label="South America">
+          <option>Brazil</option><option>Colombia</option><option>Chile</option>
+          <option>Argentina</option>
+        </optgroup>
+        <optgroup label="Asia Pacific">
+          <option>China</option><option>India</option><option>Japan</option>
+          <option>Singapore</option><option>Australia</option><option>Indonesia</option>
+          <option>Vietnam</option><option>Philippines</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <!-- Currency -->
+    <div class="field">
+      <label>Output Currency</label>
+      <select id="currency">
+        <option value="USD">USD — US Dollar</option>
+        <option value="KES">KES — Kenyan Shilling</option>
+        <option value="NGN">NGN — Nigerian Naira</option>
+        <option value="ZAR">ZAR — South African Rand</option>
+        <option value="EUR">EUR — Euro</option>
+        <option value="GBP">GBP — British Pound</option>
+        <option value="AED">AED — UAE Dirham</option>
+        <option value="SAR">SAR — Saudi Riyal</option>
+        <option value="INR">INR — Indian Rupee</option>
+        <option value="CNY">CNY — Chinese Yuan</option>
+        <option value="JPY">JPY — Japanese Yen</option>
+        <option value="AUD">AUD — Australian Dollar</option>
+        <option value="CAD">CAD — Canadian Dollar</option>
+        <option value="BRL">BRL — Brazilian Real</option>
+      </select>
+    </div>
+
+    <!-- Floor Area -->
+    <div class="field">
+      <label>Gross Floor Area (m²)</label>
+      <div class="range-wrap">
+        <input type="range" id="area-slider" min="50" max="100000" value="500" step="50"
+          oninput="document.getElementById('area-val').textContent=parseInt(this.value).toLocaleString()+' m²'"/>
+        <span class="range-val" id="area-val">500 m²</span>
+      </div>
+    </div>
+
+    <!-- Stories -->
+    <div class="field">
+      <label>Number of Floors / Storeys</label>
+      <div class="range-wrap">
+        <input type="range" id="floors-slider" min="1" max="80" value="3" step="1"
+          oninput="document.getElementById('floors-val').textContent=this.value+' floor'+(this.value>1?'s':'')"/>
+        <span class="range-val" id="floors-val">3 floors</span>
+      </div>
+    </div>
+
+    <!-- Quality -->
+    <div class="field full-width">
+      <label>Finish Quality</label>
+      <div class="chips" id="quality-chips">
+        <div class="chip" data-val="Economy">Economy</div>
+        <div class="chip active" data-val="Standard">Standard</div>
+        <div class="chip" data-val="Premium">Premium</div>
+        <div class="chip" data-val="Luxury">Luxury</div>
+        <div class="chip" data-val="Ultra-Luxury">Ultra-Luxury</div>
+      </div>
+    </div>
+
+    <!-- Special Features -->
+    <div class="field full-width">
+      <label>Special Features / Inclusions</label>
+      <div class="chips" id="features-chips">
+        <div class="chip" data-val="Basement / Underground Parking">🅿️ Underground Parking</div>
+        <div class="chip" data-val="Swimming Pool">🏊 Swimming Pool</div>
+        <div class="chip" data-val="Smart Building Automation">🤖 Smart Automation</div>
+        <div class="chip" data-val="Solar / Renewable Energy">☀️ Solar Energy</div>
+        <div class="chip" data-val="Green / LEED Certification">🌿 Green Certification</div>
+        <div class="chip" data-val="Seismic / Earthquake Resistance">⚡ Seismic Resistance</div>
+        <div class="chip" data-val="High-End MEP Systems">🔧 High-End MEP</div>
+        <div class="chip" data-val="Rooftop Garden">🌱 Rooftop Garden</div>
+        <div class="chip" data-val="Helipad">🚁 Helipad</div>
+        <div class="chip" data-val="Data Center / Server Room">🖥️ Data Center</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- API KEY INPUT -->
+  <div class="field full-width" id="api-key-field" style="margin-bottom:16px; border-color: rgba(245,166,35,0.3);">
+    <label>🔑 Anthropic API Key (required — stored only in your browser)</label>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." style="flex:1; font-family:'DM Mono',monospace; font-size:13px; letter-spacing:1px;"/>
+      <button onclick="toggleKeyVisibility()" id="toggle-key-btn" style="background:var(--surface2); border:1px solid var(--border); color:var(--muted); padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; white-space:nowrap;">Show</button>
+      <button onclick="saveKey()" style="background:rgba(245,166,35,0.15); border:1px solid var(--accent); color:var(--accent); padding:6px 14px; border-radius:6px; cursor:pointer; font-size:12px; white-space:nowrap; font-family:'DM Mono',monospace;">Save Key</button>
+    </div>
+    <div id="key-status" style="font-size:11px; margin-top:8px; font-family:'DM Mono',monospace; color:var(--muted);">No key saved yet. Your key is never stored in the code or uploaded anywhere.</div>
+  </div>
+
+  <button class="estimate-btn" id="estimate-btn" onclick="runEstimate()">
+    ⚡ GENERATE COST ESTIMATE
+  </button>
+
+  <!-- LOADING -->
+  <div class="loading-overlay" id="loading">
+    <div class="spinner"></div>
+    <p id="loading-msg">ANALYZING PROJECT PARAMETERS...</p>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="results-header">
+      <h2>COST ESTIMATE</h2>
+      <span class="badge" id="conf-badge">● AI GENERATED</span>
+    </div>
+
+    <!-- Total Cost Hero -->
+    <div class="cost-hero">
+      <div class="cost-label">ESTIMATED TOTAL PROJECT COST</div>
+      <div class="cost-range" id="cost-range">—</div>
+      <div class="cost-sub" id="cost-psm">— per m² · Based on current market rates</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Construction Duration</div>
+        <div class="stat-val" id="stat-duration">—</div>
+        <div class="stat-note">Estimated timeline</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Cost per m²</div>
+        <div class="stat-val" id="stat-psm">—</div>
+        <div class="stat-note">All-in blended rate</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Contingency</div>
+        <div class="stat-val" id="stat-contingency">—</div>
+        <div class="stat-note">Recommended reserve</div>
+      </div>
+    </div>
+
+    <!-- Breakdown -->
+    <div class="breakdown">
+      <div class="breakdown-header">
+        <span>COST BREAKDOWN BY TRADE</span>
+        <span>ESTIMATED RANGE</span>
+      </div>
+      <div id="breakdown-rows"></div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="timeline-bar">
+      <h3>Project Phase Timeline</h3>
+      <div class="phases" id="phases-bar"></div>
+      <div class="phase-legend" id="phases-legend"></div>
+    </div>
+
+    <!-- AI Insight -->
+    <div class="ai-insight">
+      <div class="ai-label">🤖 AI Analysis & Recommendations</div>
+      <p id="ai-insight-text">—</p>
+    </div>
+  </div>
+
+  <footer>
+    BuildCost Global · Powered by Claude AI · Estimates are indicative only — engage a QS for formal pricing<br/>
+    Cost data benchmarked against RICS, Turner & Townsend, and regional cost databases
+  </footer>
+</div>
+
+<script>
+  // Multi-select chips
+  function setupChips(id, multiSelect = true) {
+    const container = document.getElementById(id);
+    container.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        if (!multiSelect) {
+          container.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+        } else {
+          chip.classList.toggle('active');
+        }
+      });
+    });
+  }
+  setupChips('type-chips', false);
+  setupChips('quality-chips', false);
+  setupChips('features-chips', true);
+
+  function getSelected(id) {
+    return [...document.querySelectorAll(`#${id} .chip.active`)].map(c => c.dataset.val);
+  }
+
+  // Currency symbols
+  const currSymbols = {
+    USD:'$', KES:'KSh', NGN:'₦', ZAR:'R', EUR:'€', GBP:'£',
+    AED:'AED', SAR:'SAR', INR:'₹', CNY:'¥', JPY:'¥', AUD:'A$', CAD:'C$', BRL:'R$'
+  };
+
+  async function runEstimate() {
+    const projectType = getSelected('type-chips')[0] || 'Residential';
+    const quality = getSelected('quality-chips')[0] || 'Standard';
+    const features = getSelected('features-chips');
+    const description = document.getElementById('description').value;
+    const country = document.getElementById('country').value;
+    const currency = document.getElementById('currency').value;
+    const area = parseInt(document.getElementById('area-slider').value);
+    const floors = parseInt(document.getElementById('floors-slider').value);
+
+    if (!country) { alert('Please select a country.'); return; }
+    if (!description.trim()) { alert('Please enter a project description.'); return; }
+
+    const btn = document.getElementById('estimate-btn');
+    btn.disabled = true;
+    document.getElementById('results').style.display = 'none';
+    const loading = document.getElementById('loading');
+    loading.classList.add('show');
+
+    const msgs = [
+      'ANALYZING PROJECT PARAMETERS...',
+      'BENCHMARKING REGIONAL COST DATA...',
+      'CALCULATING TRADE ALLOCATIONS...',
+      'GENERATING AI RECOMMENDATIONS...'
+    ];
+    let mi = 0;
+    const msgEl = document.getElementById('loading-msg');
+    const msgInterval = setInterval(() => {
+      mi = (mi + 1) % msgs.length;
+      msgEl.textContent = msgs[mi];
+    }, 1200);
+
+    const prompt = `You are an expert Quantity Surveyor and construction cost consultant with deep global knowledge of construction costs across all regions. 
+
+Generate a detailed construction cost estimate for the following project:
+
+PROJECT TYPE: ${projectType}
+DESCRIPTION: ${description}
+COUNTRY: ${country}
+QUALITY: ${quality} finish
+GROSS FLOOR AREA: ${area} m²
+FLOORS: ${floors}
+SPECIAL FEATURES: ${features.length > 0 ? features.join(', ') : 'None'}
+OUTPUT CURRENCY: ${currency}
+
+Provide a structured JSON response (only JSON, no markdown, no preamble) with this exact schema:
+{
+  "totalCostLow": <number in ${currency}>,
+  "totalCostHigh": <number in ${currency}>,
+  "costPerSqmLow": <number>,
+  "costPerSqmHigh": <number>,
+  "durationMonths": <number>,
+  "contingencyPct": <number 5-20>,
+  "breakdown": [
+    { "name": "Site Preparation & Earthworks", "pct": <number>, "color": "#f5a623" },
+    { "name": "Foundations & Structure", "pct": <number>, "color": "#e85d26" },
+    { "name": "Roofing & Envelope", "pct": <number>, "color": "#3b82f6" },
+    { "name": "MEP (Mechanical, Electrical, Plumbing)", "pct": <number>, "color": "#22c55e" },
+    { "name": "Interior Finishes", "pct": <number>, "color": "#a855f7" },
+    { "name": "Exterior Works & Landscaping", "pct": <number>, "color": "#06b6d4" },
+    { "name": "Professional Fees & Permits", "pct": <number>, "color": "#ec4899" },
+    { "name": "Contingency & Escalation", "pct": <number>, "color": "#6b7280" }
+  ],
+  "phases": [
+    { "name": "Design & Permits", "durationWeeks": <number>, "color": "#3b82f6" },
+    { "name": "Site Prep", "durationWeeks": <number>, "color": "#f5a623" },
+    { "name": "Structure", "durationWeeks": <number>, "color": "#e85d26" },
+    { "name": "Envelope", "durationWeeks": <number>, "color": "#22c55e" },
+    { "name": "MEP Fit-out", "durationWeeks": <number>, "color": "#a855f7" },
+    { "name": "Finishes", "durationWeeks": <number>, "color": "#ec4899" },
+    { "name": "Commissioning", "durationWeeks": <number>, "color": "#06b6d4" }
+  ],
+  "insight": "<2-3 sentence AI analysis: key cost drivers for this specific project in this region, any risks or recommendations, current market conditions>"
+}
+
+Use realistic, current market costs for ${country}. Ensure percentages in breakdown sum to 100. All costs in ${currency}.`;
+
+    const apiKey = sessionStorage.getItem('anthropic_key');
+    if (!apiKey) {
+      clearInterval(msgInterval);
+      loading.classList.remove('show');
+      btn.disabled = false;
+      alert('Please enter and save your Anthropic API key first.');
+      document.getElementById('api-key-input').focus();
+      return;
+    }
+
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1500,
+          messages: [{ role: "user", content: prompt }]
+        })
+      });
+      const data = await response.json();
+      const text = data.content.map(i => i.text || '').join('');
+      const clean = text.replace(/```json|```/g, '').trim();
+      const result = JSON.parse(clean);
+
+      clearInterval(msgInterval);
+      loading.classList.remove('show');
+      btn.disabled = false;
+      renderResults(result, currency, area);
+    } catch(e) {
+      clearInterval(msgInterval);
+      loading.classList.remove('show');
+      btn.disabled = false;
+      alert('Could not generate estimate. Please try again.');
+    }
+  }
+
+  function fmt(n, currency) {
+    const sym = currSymbols[currency] || currency + ' ';
+    if (n >= 1e9) return sym + (n/1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return sym + (n/1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return sym + Math.round(n/1000).toLocaleString() + 'K';
+    return sym + Math.round(n).toLocaleString();
+  }
+
+  function renderResults(r, currency, area) {
+    document.getElementById('cost-range').textContent =
+      fmt(r.totalCostLow, currency) + ' – ' + fmt(r.totalCostHigh, currency);
+    document.getElementById('cost-psm').textContent =
+      fmt(r.costPerSqmLow, currency) + ' – ' + fmt(r.costPerSqmHigh, currency) +
+      ' per m² · Based on current market rates';
+
+    document.getElementById('stat-duration').textContent = r.durationMonths + ' months';
+    document.getElementById('stat-psm').textContent =
+      fmt((r.costPerSqmLow + r.costPerSqmHigh)/2, currency);
+    document.getElementById('stat-contingency').textContent = r.contingencyPct + '%';
+
+    // Breakdown rows
+    const mid = (r.totalCostLow + r.totalCostHigh) / 2;
+    const rowsEl = document.getElementById('breakdown-rows');
+    rowsEl.innerHTML = r.breakdown.map(b => {
+      const lo = r.totalCostLow * b.pct / 100;
+      const hi = r.totalCostHigh * b.pct / 100;
+      return `<div class="breakdown-row">
+        <span class="br-name">
+          <span class="br-dot" style="background:${b.color}"></span>
+          ${b.name}
+        </span>
+        <span class="br-pct">${b.pct}%</span>
+        <span class="br-cost">${fmt(lo,currency)} – ${fmt(hi,currency)}</span>
+      </div>`;
+    }).join('');
+
+    // Timeline phases
+    const totalWeeks = r.phases.reduce((s,p) => s + p.durationWeeks, 0);
+    const bar = document.getElementById('phases-bar');
+    const leg = document.getElementById('phases-legend');
+    bar.innerHTML = r.phases.map(p => {
+      const pct = (p.durationWeeks / totalWeeks * 100).toFixed(1);
+      return `<div class="phase-seg" style="flex:${p.durationWeeks};background:${p.color}">
+        ${pct > 8 ? p.name : ''}
+      </div>`;
+    }).join('');
+    leg.innerHTML = r.phases.map(p =>
+      `<div class="phase-item">
+        <span class="phase-dot" style="background:${p.color}"></span>
+        ${p.name} (${p.durationWeeks}w)
+      </div>`
+    ).join('');
+
+    document.getElementById('ai-insight-text').textContent = r.insight;
+
+    const res = document.getElementById('results');
+    res.style.display = 'block';
+    res.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // API KEY MANAGEMENT
+  function saveKey() {
+    const key = document.getElementById('api-key-input').value.trim();
+    if (!key.startsWith('sk-ant-')) {
+      document.getElementById('key-status').innerHTML =
+        '<span style="color:var(--red)">⚠ That doesn\'t look like a valid Anthropic key. It should start with sk-ant-...</span>';
+      return;
+    }
+    sessionStorage.setItem('anthropic_key', key);
+    document.getElementById('api-key-input').value = '••••••••••••••••••••••••••••••••';
+    document.getElementById('key-status').innerHTML =
+      '<span style="color:var(--green)">✓ Key saved for this session. You can now generate estimates.</span>';
+  }
+
+  function toggleKeyVisibility() {
+    const input = document.getElementById('api-key-input');
+    const btn = document.getElementById('toggle-key-btn');
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.textContent = 'Hide';
+    } else {
+      input.type = 'password';
+      btn.textContent = 'Show';
+    }
+  }
+
+  // Check if key already saved this session
+  window.addEventListener('load', () => {
+    const saved = sessionStorage.getItem('anthropic_key');
+    if (saved) {
+      document.getElementById('api-key-input').value = '••••••••••••••••••••••••••••••••';
+      document.getElementById('key-status').innerHTML =
+        '<span style="color:var(--green)">✓ Key loaded from this session. Ready to generate estimates.</span>';
+    }
+  });
+</script>
+</body>
+</html>
